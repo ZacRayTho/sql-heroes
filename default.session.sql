@@ -5,4 +5,4 @@ LEFT JOIN abilities
 LEFT JOIN ability_types
     ON abilities.ability_type_id=ability_types.id
 WHERE heroes.name='The Seer'
-GROUP BY heroes.name
+
