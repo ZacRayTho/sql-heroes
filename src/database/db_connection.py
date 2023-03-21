@@ -10,7 +10,7 @@ def create_connection(db_name, db_user, db_password, db_host = "localhost", db_p
             host=db_host,
             port=db_port,
         )
-        print("Connection to PostgreSQL DB successful")
+        # print("Connection to PostgreSQL DB successful")
     except OperationalError as e:
         print(f"The error '{e}' occurred")
     return connection
@@ -21,7 +21,7 @@ def execute_query(query, params=None):
     try:
         cursor.execute(query, params)
         connection.commit()
-        print("Query executed successfully")
+        # print("Query executed successfully")
         connection.close()
         return cursor
     except OSError as e:
@@ -38,19 +38,19 @@ Documentation on this can be found at https://www.psycopg.org/psycopg3/docs/basi
 
 Examples:
 def select_all_patients():
-    query = \"\"\"
+    query = '''
         SELECT * from patients
-    \"\"\"
+    '''
     returned_items = execute_query(query).fetchall
     for item in returned_items:
         print(item[1])
     return returned_items
 
  def create_new_patient(name, bio):
-    query = \"\"\"
+    query = '''
         INSERT INTO patients (name, bio)
         VALUES (%s, %s)
-        \"\"\"
+        '''
     execute_query(query, (name, bio))
     
 NOTE: Tuples () with only one argument need to have a trailing comma. 

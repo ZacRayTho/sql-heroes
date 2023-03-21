@@ -1,1 +1,2 @@
-SELECT * from heroes   
+SELECT name, about_me, biography
+FROM heroes
