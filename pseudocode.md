@@ -46,9 +46,23 @@ AND hero2_id == input(hero2)
 
 ```
 DELETE FROM heroes
-WHERE name == input(hero_name)
+WHERE name=input(hero_name)
 ```
 
-I want something like facebook for the heros
+## INIT function
+screen to be displayed on load of program and anytime another function or query is done loading. That way, user won't have keep running the python program.
 
-Use index of the table instead of whole hero name
+```
+def init():
+    PRINT (homescreen)
+    DISPLAY (Options relating to CRUD)
+    INPUT (what would user like to do?)
+```
+
+OPTIONS can be:
+ - View current directory of heroes
+    - choose a hero for a deeper dive into their info/powers/relations
+ - Someone joins the good fight(add hero)
+ - Tragedy Strikes(remove hero)
+ - New mutation(update hero relation/or powers)
+ 
