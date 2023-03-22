@@ -1,6 +1,6 @@
 from database.db_connection import execute_query, create_connection
 
-width = 200
+width = 30
 
 def hero_directory():
     x = "SELECT * FROM heroes"
@@ -27,8 +27,14 @@ def add_hero():
 
 
 def analyze(name):
+    q0 = """
+    SELECT DISTINCT about_me, biography
+    FROM heroes
+    WHERE name='{}'
+    """.format(name)
+
     q = """
-    SELECT DISTINCT heroes.name, about_me, biography, ability_types.name
+    SELECT DISTINCT ability_types.name AS ability_name
     FROM heroes
     LEFT JOIN abilities
         ON heroes.id=abilities.hero_id
@@ -36,11 +42,20 @@ def analyze(name):
         ON abilities.ability_type_id=ability_types.id
     WHERE heroes.name='{}'
     """.format(name)
-    results = execute_query(q).fetchall()
     
-    # for result in results:
-    #     for x in result:
-    #         print(x.center(width))
+    result0 = execute_query(q0).fetchall()
+    for result in result0:
+        for thing in result:
+            print(thing)
+
+    print("Abilities:", end =" ")
+    results = execute_query(q).fetchall()
+    for result in results:
+        for thing in result:
+            print(thing, end=", ")
+    print('')
+    input("Press enter to return to main menu")
+    menu()
 
 
 def kill_hero():
