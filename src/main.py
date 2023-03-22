@@ -200,8 +200,18 @@ def Update(person):
             WHERE name='{}'
             """.format(name, person)
             execute_query(nameQuery)
+            print("{} has changed identities to {}".format(person, name))
             menu()
         case '2':
+            print("Current 'about me' section for {}:".format(person).center(width))
+            beforeAbout = """
+            SELECT about_me
+            FROM heroes
+            WHERE name='{}'
+            """.format(person)
+            before = execute_query(beforeAbout).fetchall()
+            print(before)
+
             about = input(f"New 'about me' section for {person}?")
             aboutQuery = """
             UPDATE heroes
@@ -211,6 +221,15 @@ def Update(person):
             execute_query(aboutQuery)
             menu()
         case '3':
+            print("Current 'biography' section for {}:".format(person).center(width))
+            beforeBio = """
+            SELECT biography
+            FROM heroes
+            WHERE name='{}'
+            """.format(person)
+            before = execute_query(beforeAbout).fetchall()
+            print(before)
+
             bio = input(f"New 'biography' section for {person}?")
             bioQuery = """
             UPDATE heroes
@@ -219,7 +238,22 @@ def Update(person):
             """.format(bio, person)
             execute_query(bioQuery)
             menu()
-        # case '4':
+        case '4':
+            print("Current abilities of {}:".format(person).center(width))
+            beforeAbilities = """
+            SELECT ability_types.name
+            FROM abilities
+            JOIN ability_types 
+                ON abilities.ability_type_id=ability_types.id
+            WHERE hero_id=(SELECT id
+            FROM heroes
+            WHERE name='{}')
+            """.format(person)
+            before = execute_query(beforeAbilities).fetchall()
+            for tuple in before:
+                for str in tuple:
+                    print(str)
+            
         # case '5':
     
 menu()
