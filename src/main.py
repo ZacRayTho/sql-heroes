@@ -27,9 +27,9 @@ def add_hero():
 
     q = """
     INSERT INTO heroes (name, about_me, biography)
-    VALUES ('{}', '{}', '{}')
-    """.format(name, about, bio)
-    execute_query(q)
+    VALUES (%s, %s, %s)
+    """
+    execute_query(q, (name, about, bio, ))
 
     power = input("What powers do they have?".center(width))
     powerSplit = power.split(", ")
@@ -45,23 +45,23 @@ def add_hero():
 
     for x in powerSplit:
         if x in pwers:
-            continue
+            pass
         else:
             qp = """
             INSERT INTO ability_types (name)
-            VALUES ('{}')
-            """.format(x)
-            execute_query(qp)
+            VALUES (%s)
+            """
+            execute_query(qp, (x, ))
 
         qabil = """
         INSERT INTO abilities (hero_id, ability_type_id)
         VALUES((SELECT id 
         FROM heroes
-        WHERE name='{}'), (SELECT id 
+        WHERE name=%s), (SELECT id 
         FROM ability_types
-        WHERE name='{}'))
-        """.format(name, x)
-        execute_query(qabil)
+        WHERE name=%s))
+        """
+        execute_query(qabil, (name, x, ))
 
  
     print(f"{name} joins the battle!".center(width))
@@ -72,17 +72,17 @@ def analyze(name):
     qint = """
     SELECT id 
     FROM heroes
-    WHERE name='{}'
-    """.format(name)
-    id = execute_query(qint).fetchone()[0]
+    WHERE name=%s
+    """
+    id = execute_query(qint, (name, )).fetchone()[0]
 
     q0 = """
     SELECT DISTINCT about_me, biography
     FROM heroes
-    WHERE name='{}'
-    """.format(name)
+    WHERE name=%s
+    """
 
-    result0 = execute_query(q0).fetchall()
+    result0 = execute_query(q0, (name, )).fetchall()
     for result in result0:
         for thing in result:
             print(thing)
@@ -94,11 +94,11 @@ def analyze(name):
         ON heroes.id=abilities.hero_id
     LEFT JOIN ability_types
         ON abilities.ability_type_id=ability_types.id
-    WHERE heroes.name='{}'
-    """.format(name)
+    WHERE heroes.name=%s
+    """
     
     print("Abilities:", end =" ")
-    results = execute_query(q).fetchall()
+    results = execute_query(q, (name, )).fetchall()
     for result in results:
         for thing in result:
             print(thing, end=", ")
@@ -111,13 +111,13 @@ def analyze(name):
         ON heroes.id=relationships.hero1_id 
     JOIN relationship_types
         ON relationships.relationship_type_id=relationship_types.id
-    where hero2_id={}
-    """.format(id)
+    where hero2_id=%s
+    """
 
     friends = []
     enemies = []
 
-    relayq1 = execute_query(qf1).fetchall()
+    relayq1 = execute_query(qf1, (id, )).fetchall()
     for x in relayq1:
         if x[1] == "Friend" and x[0] not in friends:
             friends.append(x[0])
@@ -131,10 +131,10 @@ def analyze(name):
         ON heroes.id=relationships.hero2_id 
     JOIN relationship_types
         ON relationships.relationship_type_id=relationship_types.id
-    where hero1_id={}
-    """.format(id)
+    where hero1_id=%s
+    """
 
-    relayq2 = execute_query(qf2).fetchall()
+    relayq2 = execute_query(qf2, (id, )).fetchall()
     for x in relayq2:
         if x[1] == "Friend" and x[0] not in friends:
             friends.append(x[0])
@@ -159,9 +159,9 @@ def kill_hero():
     target = input("Name of unfortunate soul?".center(width))
     q = """
         DELETE FROM heroes
-        WHERE name='{}'  
-    """.format(target)
-    execute_query(q)
+        WHERE name=%s  
+    """
+    execute_query(q, (target, ))
     print(f"{target} stepped on a lego, ending their heroic life, they will be missed.".center(width))
     menu()
 
@@ -196,10 +196,10 @@ def Update(person):
             name = input(f"New name for {person}?".center(width))
             nameQuery = """
             UPDATE heroes
-            SET name ='{}'
-            WHERE name='{}'
-            """.format(name, person)
-            execute_query(nameQuery)
+            SET name =%s
+            WHERE name=%s
+            """
+            execute_query(nameQuery, (name, person, ))
             print("{} has changed identities to {}".format(person, name))
             menu()
         case '2':
@@ -207,36 +207,36 @@ def Update(person):
             beforeAbout = """
             SELECT about_me
             FROM heroes
-            WHERE name='{}'
-            """.format(person)
-            before = execute_query(beforeAbout).fetchall()
+            WHERE name=%s
+            """
+            before = execute_query(beforeAbout, (person, )).fetchall()
             print(before)
 
             about = input(f"New 'about me' section for {person}?")
             aboutQuery = """
             UPDATE heroes
-            SET about_me ='{}'
-            WHERE name='{}'
-            """.format(about, person)
-            execute_query(aboutQuery)
+            SET about_me =%s
+            WHERE name=%s
+            """
+            execute_query(aboutQuery, (about, person, ))
             menu()
         case '3':
             print("Current 'biography' section for {}:".format(person).center(width))
             beforeBio = """
             SELECT biography
             FROM heroes
-            WHERE name='{}'
-            """.format(person)
-            before = execute_query(beforeAbout).fetchall()
+            WHERE name=%s
+            """
+            before = execute_query(beforeAbout, (person, )).fetchall()
             print(before)
 
             bio = input(f"New 'biography' section for {person}?")
             bioQuery = """
             UPDATE heroes
-            SET biography ='{}'
-            WHERE name='{}'
-            """.format(bio, person)
-            execute_query(bioQuery)
+            SET biography =%s
+            WHERE name=%s
+            """
+            execute_query(bioQuery, (bio, person, ))
             menu()
         case '4':
             print("Current abilities of {}:".format(person).center(width))
@@ -247,12 +247,14 @@ def Update(person):
                 ON abilities.ability_type_id=ability_types.id
             WHERE hero_id=(SELECT id
             FROM heroes
-            WHERE name='{}')
-            """.format(person)
-            before = execute_query(beforeAbilities).fetchall()
+            WHERE name=%s)
+            """
+            before = execute_query(beforeAbilities, (person, )).fetchall()
             for tuple in before:
                 for str in tuple:
                     print(str)
+            
+            edit = input("Remove(R), Delete(D), or Add(A)?".center(width))
             
         # case '5':
     

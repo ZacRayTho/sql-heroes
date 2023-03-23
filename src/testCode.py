@@ -1,3 +1,3 @@
-page = 2
+from database.db_connection import execute_query
 
-print("hello" if page == 1 else "hi")
+execute_query(q)
