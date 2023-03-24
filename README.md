@@ -1,0 +1,1 @@
+A repo for the project based around SQL CRUD statements, and how to interact with SQL from python and giving user power to interact as well without breaking anything

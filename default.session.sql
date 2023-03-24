@@ -1,1 +1,4 @@
-SELECT * from heroes   
+
+    SELECT lower(name)  
+    FROM ability_types
+    
