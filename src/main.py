@@ -35,7 +35,7 @@ def add_hero():
     """
     execute_query(q, (name, about, bio, ))
 
-    power = input("What powers do they have?".center(width))
+    power = input("What powers do they have?(format like 'Telepathy, Invisibility, blahblah')".center(width))
     add_power(power, name)
  
     print(f"{name} joins the battle!".center(width))
@@ -44,20 +44,21 @@ def add_hero():
 
 
 def analyze(name):
+    lazyName = like(name)
     qint = """
     SELECT id 
     FROM heroes
-    WHERE name=%s
+    WHERE lower(name) LIKE %s
     """
-    id = execute_query(qint, (name, )).fetchone()[0]
-
+    id = execute_query(qint, (lazyName, )).fetchone()[0]
+    
     q0 = """
     SELECT DISTINCT about_me, biography
     FROM heroes
-    WHERE name=%s
+    WHERE lower(name) LIKE %s
     """
 
-    result0 = execute_query(q0, (name, )).fetchall()
+    result0 = execute_query(q0, (lazyName, )).fetchall()
     for result in result0:
         for thing in result:
             print(thing)
@@ -69,17 +70,17 @@ def analyze(name):
         ON heroes.id=abilities.hero_id
     LEFT JOIN ability_types
         ON abilities.ability_type_id=ability_types.id
-    WHERE heroes.name=%s
+    WHERE lower(heroes.name) LIKE %s
     """
     
     print("Abilities:", end =" ")
-    results = execute_query(q, (name, )).fetchall()
+    results = execute_query(q, (lazyName, )).fetchall()
     for result in results:
         for thing in result:
             print(thing, end=", ")
     print('')
 
-    friends, enemies = frenemy(name)
+    friends, enemies = frenemy(lazyName)
     
     print("Friends: ", end="")
     for friend in friends:
@@ -100,9 +101,9 @@ def kill_hero():
     target = input("Name of unfortunate soul?".center(width))
     q = """
         DELETE FROM heroes
-        WHERE name=%s  
+        WHERE lower(name) LIKE %s  
     """
-    execute_query(q, (target, ))
+    execute_query(q, (like(target), ))
     print(f"{target} stepped on a lego, ending their heroic life, they will be missed.".center(width))
     menu()
 
@@ -129,6 +130,7 @@ def menu():
 
 
 def Update(person):
+    lazyName = like(person)
     print("-".center(width,"-"))
     print("1.Name".center(width))
     print("2.About".center(width))
@@ -142,9 +144,9 @@ def Update(person):
             nameQuery = """
             UPDATE heroes
             SET name =%s
-            WHERE name=%s
+            WHERE lower(name) LIKE %s
             """
-            execute_query(nameQuery, (name, person, ))
+            execute_query(nameQuery, (name, lazyName, ))
             print("{} has changed identities to {}".format(person, name))
             menu()
         case '2':
@@ -152,36 +154,36 @@ def Update(person):
             beforeAbout = """
             SELECT about_me
             FROM heroes
-            WHERE name=%s
+            WHERE lower(name) LIKE %s
             """
-            before = execute_query(beforeAbout, (person, )).fetchall()
-            print(before)
+            before = execute_query(beforeAbout, (lazyName, )).fetchall()
+            print(before[0][0])
 
             about = input(f"New 'about me' section for {person}?")
             aboutQuery = """
             UPDATE heroes
             SET about_me =%s
-            WHERE name=%s
+            WHERE lower(name) LIKE %s
             """
-            execute_query(aboutQuery, (about, person, ))
+            execute_query(aboutQuery, (about, lazyName, ))
             menu()
         case '3':
             print("Current 'biography' section for {}:".format(person).center(width))
             beforeBio = """
             SELECT biography
             FROM heroes
-            WHERE name=%s
+            WHERE lower(name) LIKE %s
             """
-            before = execute_query(beforeAbout, (person, )).fetchall()
-            print(before)
+            before = execute_query(beforeBio, (lazyName, )).fetchall()
+            print(before[0][0])
 
             bio = input(f"New 'biography' section for {person}?")
             bioQuery = """
             UPDATE heroes
             SET biography =%s
-            WHERE name=%s
+            WHERE lower(name) LIKE %s
             """
-            execute_query(bioQuery, (bio, person, ))
+            execute_query(bioQuery, (bio, lazyName, ))
             menu()
         case '4':
             print("Current abilities of {}:".format(person).center(width))
@@ -192,27 +194,28 @@ def Update(person):
                 ON abilities.ability_type_id=ability_types.id
             WHERE hero_id=(SELECT id
             FROM heroes
-            WHERE name=%s)
+            WHERE lower(name) LIKE %s)
             """
-            before = execute_query(beforeAbilities, (person, )).fetchall()
+            before = execute_query(beforeAbilities, (lazyName, )).fetchall()
             for tuple in before:
                 print(tuple[0])
             
             edit = input("Remove(R), or Add(A)?".center(width))
             if edit.upper() == "R":
                 edit2 = input("Which Ability?".center(width))
+                lazyPower = like(edit2)
                 removeQuery = """
                 DELETE FROM abilities
-                WHERE hero_id=(SELECT id from heroes WHERE name=%s)
-                AND ability_type_id=(SELECT id from ability_types WHERE name=%s)
+                WHERE hero_id=(SELECT id from heroes WHERE lower(name) LIKE %s)
+                AND ability_type_id=(SELECT id from ability_types WHERE lower(name) LIKE %s)
                 """
-                execute_query(removeQuery, (person, edit2, ))
+                execute_query(removeQuery, (lazyName, lazyPower, ))
                 print(f"{person} has mysteriously lost his power of {edit2}".center(width))
                 menu()
             elif edit.upper() == "A":
-                edit2 = input(f"What ability does {person} gain?".center(width))
+                edit2 = input(f"What abilities does {person} gain?(format like 'Telepathy, Invisibility, blahblah')".center(width))
                 add_power(edit2, person)
-                print(f"{person} has gained the power of {edit2}".center(width))
+                print(f"{person} has gained the power(s) of {edit2}".center(width))
                 menu()
 
         case '5': 
@@ -232,8 +235,9 @@ def Update(person):
             choice = input("Flip Relationship(F) OR Add another(A)?")
             if choice.upper() == "F":
                 flipper = input(f"Who betrays/befriends {person}? ".center(width))
-                firstId = execute_query('SELECT id from heroes WHERE name = %s', (person, )).fetchone()
-                secondId = execute_query('SELECT id FROM heroes WHERE name = %s', (flipper, )).fetchone()
+                lazyFlip = like(flipper)
+                firstId = execute_query('SELECT id from heroes WHERE lower(name) LIKE %s', (lazyName, )).fetchone()
+                secondId = execute_query('SELECT id FROM heroes WHERE lower(name) LIKE %s', (lazyFlip, )).fetchone()
                 flipQuery = """
                 UPDATE relationships
                 SET relationship_type_id = (CASE WHEN relationship_type_id=1 THEN 2 ELSE 1 END)
@@ -245,16 +249,17 @@ def Update(person):
                 menu()
             elif choice.upper() == "A":
                 newb = input(f" Who's {person} thinking of?")
+                newb2 = like(newb)
                 relationship = input("Friend(F) or Enemy(E)?")
                 shortrelay = "friend" if relationship.upper() == "F" else "enemy"
                 newFrenemy = """
                 INSERT INTO relationships (hero1_id, hero2_id, relationship_type_id)
-                VALUES ((SELECT id FROM heroes WHERE name=%s),
-                (SELECT id FROM heroes WHERE name=%s), %s)
+                VALUES ((SELECT id FROM heroes WHERE lower(name) LIKE %s),
+                (SELECT id FROM heroes WHERE lower(name) LIKE %s), %s)
                 """
-                execute_query(newFrenemy, (person, newb, 1 if relationship.upper() == "F" else 2))
+                execute_query(newFrenemy, (lazyName, newb2, 1 if relationship.upper() == "F" else 2))
                 print(f"{person} has made a new {shortrelay}, named {newb}!")
-
+                menu()
                 
 
 def add_power(str, name):
@@ -295,7 +300,7 @@ def frenemy(name):
     qint = """
     SELECT id 
     FROM heroes
-    WHERE name=%s
+    WHERE lower(name) LIKE %s
     """
     id = execute_query(qint, (name, )).fetchone()[0]
 
@@ -330,5 +335,7 @@ def frenemy(name):
                 enemies.append(y[0])
     return [friends, enemies]
 
+def like(str):
+    return "%" + str + "%"
 
 menu()
