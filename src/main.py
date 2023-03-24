@@ -2,6 +2,8 @@ from database.db_connection import execute_query, create_connection
 
 width = 30
 
+### MENU OF HERO NAMES
+
 def hero_directory(state):
     x = "SELECT * FROM heroes"
     results = execute_query(x).fetchall()
@@ -23,6 +25,7 @@ def hero_directory(state):
             menu()
 
 
+### ADD HERO FUNCTION
 
 def add_hero():
     name = input("Name of Hero?".center(width))
@@ -42,7 +45,7 @@ def add_hero():
     menu()
 
 
-
+### DEEP DIVE INTO HERO'S EVERYTHING
 def analyze(name):
     lazyName = like(name)
     qint = """
@@ -96,6 +99,7 @@ def analyze(name):
     menu()
 
 
+### NIGHT NIGHT HERO
 
 def kill_hero():
     target = input("Name of unfortunate soul?".center(width))
@@ -108,6 +112,8 @@ def kill_hero():
     menu()
 
 
+
+### MAIN MENU 
 
 def menu():
     print("HOME PAGE".center(width, "*"))
@@ -129,6 +135,7 @@ def menu():
 
 
 
+### UPDATE ANYHERO'S ANYTHING
 def Update(person):
     lazyName = like(person)
     print("-".center(width,"-"))
@@ -262,7 +269,9 @@ def Update(person):
                 menu()
                 
 
+### FUNCTION FOR ADD ABILITY AND CHECK IF IT ALREADY EXISTS
 def add_power(str, name):
+    print(str, name)
     arr = str.split(", ")
     powerQuery = """
     SELECT name  
@@ -275,6 +284,7 @@ def add_power(str, name):
             pwers.append(power)
 
     for x in arr:
+        print(x)
         if x in pwers:
             pass
         else:
@@ -288,13 +298,14 @@ def add_power(str, name):
         INSERT INTO abilities (hero_id, ability_type_id)
         VALUES((SELECT id 
         FROM heroes
-        WHERE name=%s), (SELECT id 
+        WHERE lower(name) LIKE %s), (SELECT id 
         FROM ability_types
         WHERE name=%s))
         """
-        execute_query(qabil, (name, x, ))
+        execute_query(qabil, (like(name), x, ))
 
 
+### GET LIST OF FRIENDS AND ENEMIES FOR CURRENT HERO
 
 def frenemy(name):
     qint = """
@@ -335,7 +346,10 @@ def frenemy(name):
                 enemies.append(y[0])
     return [friends, enemies]
 
+
+### FUNCTION USED TO ADD % FOR SQL LIKE FUNCTIONS
 def like(str):
     return "%" + str + "%"
 
+### START PROGRAM1
 menu()
